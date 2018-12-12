@@ -1,0 +1,5 @@
+post    方式获取用户数据(express)
+http.use(bodyParser.urlencoded({extended:false}));
+
+连接数据库mongodb语法
+

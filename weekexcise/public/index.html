@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<style type="text/css">
+			*{
+				margin: 0;padding: 0;
+			}
+			#wrap{
+				width: 500px;
+				margin: 0 auto;
+				border: solid 1px black;
+			}
+			#hope{
+				display: flex;
+				flex-flow: row wrap;
+			}
+			.bg{
+				background: red;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="wrap">
+			<input type="text" id="txt" placeholder="请输入愿望"/>
+			<button id="btn">提交</button>
+			<div id="hope">
+				
+				
+			</div>
+		</div>
+		<script src="jquery-3.3.1.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			//添加按钮事件
+			$("#btn").on("click",function(){
+				$.ajax({
+					type:"get",
+					url:"/msg",
+					async:true,
+					success(res0){
+						console.log(res0)
+						let flag=0;
+						res0.forEach((item,index)=>{
+							if(item.hope==$("#txt").val()){
+								flag=1;
+							}
+						});
+						
+						if(flag==0){							
+							$.ajax({
+								type:"post",
+								url:"/aHope",
+								//hope是愿望  succ是是否实现
+								data:{hope:$("#txt").val(),succ:0},
+								success(res){
+									console.log("成功发送",res)
+									info()
+								}
+							});
+						}else{
+							alert("该愿望已经添加")
+						}
+						
+					}
+				});
+				
+			})
+			
+			//获取随机数函数
+			function ranNum(num){
+				//数组长度为num时，随机下标
+				return parseInt(Math.random()*num);
+			}
+			//随机排序的数组
+			function ranArr(num){
+				let arr=[],arr1=[];
+				for(let i=0;i<num;i++){
+					arr.push(i);
+				}
+				while(arr.length!=0){
+					arr1.push(arr.splice(ranNum(arr.length),1)[0]);
+				}
+				return arr1.slice(0,8);
+			}
+			console.log(ranArr(5))
+			
+			
+			//获取所有愿望,渲染页面
+			function info(){
+				$.ajax({
+					type:"get",
+					url:"/msg",
+					success(res){
+						console.log(res);
+						
+						//随机排序
+						let arr=ranArr(res.length);
+						let arr1=[];
+						for(let j=0;j<arr.length;j++){
+							arr1.push(res[arr[j]])
+						}
+						
+						let str=``;
+						for(let i=0;i<arr1.length;i++){
+							let strTemp='';
+							if(arr1[i].succ=="1"){
+								//愿望已实现
+								strTemp="background:red;";
+							}
+							str+=`
+								<span style="width:105px;min-height:120px;padding:10px;text-align:center;display:flex;flex-direction:column;">
+									<div><button style="width:100%" onclick=del('${arr1[i]._id}')>删除</button></div>
+									<div style="${strTemp}flex:1">${arr1[i].hope}</div>
+									<div><button style="width:100%" onclick=tof('${arr1[i]._id}',this)>^-^</button></div>
+								</span>			
+								`;
+						}
+						$("#hope").html(str)
+					}
+				})
+			}
+			info();
+			
+			//删除一条数据
+			function del(id){
+				$.ajax({
+					type:"get",
+					url:"/del",
+					data:{id},
+					success(res){
+						console.log(res);
+						info();
+					}
+				});
+			}
+			
+			//是否实现愿望
+			function tof(id,obj){
+				$(obj).parent().parent().children("div").eq(1).attr("class","bg");
+				$.ajax({
+					type:"get",
+					url:"/update",
+					data:{id},
+					success(res){
+						console.log(res);
+					}
+				});
+				
+			}
+			
+			
+		</script>
+	</body>
+</html>
